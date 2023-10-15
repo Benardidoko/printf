@@ -1,185 +1,127 @@
 #include "main.h"
 
 /**
- * is_digit - Check if a character is a digit.
- * @c: The character to be checked.
- * Return: 1 if it's a digit, 0 otherwise.
+ * _isdigit - checks if char is a digit
+ * @c: char to be checked
+ * Return: 1 if is a digit and 0 if otherwise
  */
-int is_digit(int c)
+int _isdigit(int c)
 {
-    return (c >= '0' && c <= '9');
+	return (c >= '0' && c <= '9');
 }
 
 /**
- * string_length - Calculate the length of a string.
- * @s: The string.
- * Return: The length of the string.
+ * _strlen - returns the length of a string
+ * @s: string
+ * Return: length of string
  */
-int string_length(char *s)
+int _strlen(char *s)
 {
-    int length = 0;
+	int i = 0;
 
-    while (*s)
-    {
-        length++;
-        s++;
-    }
-    
-    return length;
+	while (*s++)
+		i++;
+	return (i);
 }
 
 /**
- * print_formatted_number - Print a formatted number.
- * @str: The base number as a string.
- * @format: The formatting options.
- * Return: The number of characters printed.
+ * print_number - prints a number
+ * @str: the base number
+ * @params: parameter struct
+ * Return: characters printed
  */
-int print_formatted_number(char *str, FormatOptions *format)
+int print_number(char *str, params_t *params)
 {
-    int characters_printed = 0;
-    int is_negative = (!format->unsigned_num && *str == '-');
+	unsigned int i = _strlen(str);
+	int neg = (!params->unsign && *str == '-');
 
-    if (!format->precision && *str == '0' && !str[1])
-        str = "";
+	if (!params->precision && *str == '0' && !str[1])
+		str = "";
+	if (neg)
+	{
+		str++;
+		i--;
+	}
+	if (params->precision != UINT_MAX)
+		while (i++ < params->precision)
+			*--str = '0';
+	if (neg)
+		*--str = '-';
 
-    if (is_negative)
-    {
-        str++;
-        characters_printed--;
-    }
-
-    if (format->precision != UINT_MAX)
-    {
-        while (string_length(str) < format->precision)
-        {
-            *--str = '0';
-            characters_printed++;
-        }
-    }
-
-    if (is_negative)
-    {
-        *--str = '-';
-        characters_printed++;
-    }
-
-    if (!format->left_aligned)
-    {
-        characters_printed += print_number_right_shift(str, format);
-    }
-    else
-    {
-        characters_printed += print_number_left_shift(str, format);
-    }
-
-    return characters_printed;
+	if (!params->minus_flag)
+		return (print_number_right_shift(str, params));
+	else
+		return (print_number_left_shift(str, params));
 }
 
 /**
- * print_number_right_shift - Print a right-aligned number with options.
- * @str: The base number as a string.
- * @format: The formatting options.
- * Return: The number of characters printed.
+ * print_number_right_shift - prints a number with options
+ * @str: the base number as a string
+ * @params: the parameter struct
+ *
+ * Return: chars printed
  */
-int print_number_right_shift(char *str, FormatOptions *format)
+int print_number_right_shift(char *str, params_t *params)
 {
-    int characters_printed = 0;
-    int is_negative = (!format->unsigned_num && *str == '-');
-    char padding_char = ' ';
+	unsigned int n = 0, neg, neg2, i = _strlen(str);
+	char pad_char = ' ';
 
-    if (format->zero_padded && !format->left_aligned)
-    {
-        padding_char = '0';
-    }
-
-    if (is_negative)
-    {
-        str++;
-        characters_printed--;
-    }
-
-    if ((format->show_plus && !is_negative) ||
-        (!format->show_plus && format->space_for_positive && !is_negative))
-    {
-        string_length(str) += 1;
-        characters_printed++;
-    }
-
-    if (is_negative && padding_char == '0')
-    {
-        characters_printed += _putchar('-');
-    }
-
-    if (format->show_plus && !is_negative && padding_char == '0' && !format->unsigned_num)
-    {
-        characters_printed += _putchar('+');
-    }
-    else if (!format->show_plus && format->space_for_positive && !is_negative && !format->unsigned_num && !format->zero_padded)
-    {
-        characters_printed += _putchar(' ');
-    }
-
-    while (string_length(str) < format->width)
-    {
-        _putchar(padding_char);
-        characters_printed++;
-    }
-
-    if (is_negative && padding_char == ' ')
-    {
-        characters_printed += _putchar('-');
-    }
-
-    if (format->show_plus && !is_negative && padding_char == ' ' && !format->unsigned_num)
-    {
-        characters_printed += _putchar('+');
-    }
-    else if (!format->show_plus && format->space_for_positive && !is_negative && !format->unsigned_num && !format->zero_padded)
-    {
-        characters_printed += _putchar(' ');
-    }
-
-    characters_printed += _puts(str);
-
-    return characters_printed;
+	if (params->zero_flag && !params->minus_flag)
+		pad_char = '0';
+	neg = neg2 = (!params->unsign && *str == '-');
+	if (neg && i < params->width && pad_char == '0' && !params->minus_flag)
+		str++;
+	else
+		neg = 0;
+	if ((params->plus_flag && !neg2) ||
+		(!params->plus_flag && params->space_flag && !neg2))
+		i++;
+	if (neg && pad_char == '0')
+		n += _putchar('-');
+	if (params->plus_flag && !neg2 && pad_char == '0' && !params->unsign)
+		n += _putchar('+');
+	else if (!params->plus_flag && params->space_flag && !neg2 &&
+		!params->unsign && params->zero_flag)
+		n += _putchar(' ');
+	while (i++ < params->width)
+		n += _putchar(pad_char);
+	if (neg && pad_char == ' ')
+		n += _putchar('-');
+	if (params->plus_flag && !neg2 && pad_char == ' ' && !params->unsign)
+		n += _putchar('+');
+	else if (!params->plus_flag && params->space_flag && !neg2 &&
+		!params->unsign && !params->zero_flag)
+		n += _putchar(' ');
+	n += _puts(str);
+	return (n);
 }
 
 /**
- * print_number_left_shift - Print a left-aligned number with options.
- * @str: The base number as a string.
- * @format: The formatting options.
- * Return: The number of characters printed.
+ * print_number_left_shift - prints a number with options
+ * @str: the base number as a string
+ * @params: the parameter struct
+ *
+ * Return: chars printed
  */
-int print_number_left_shift(char *str, FormatOptions *format)
+int print_number_left_shift(char *str, params_t *params)
 {
-    int characters_printed = 0;
-    int is_negative = (!format->unsigned_num && *str == '-');
-    char padding_char = ' ';
+	unsigned int n = 0, neg, neg2, i = _strlen(str);
+	char pad_char = ' ';
 
-    if (format->zero_padded && !format->left_aligned)
-    {
-        padding_char = '0';
-    }
+	if (params->zero_flag && !params->minus_flag)
+		pad_char = '0';
+	neg = neg2 = (!params->unsign && *str == '-');
+	if (neg && i < params->width && pad_char == '0' && !params->minus_flag)
+		str++;
+	else
+		neg = 0;
 
-    if (format->show_plus && !is_negative && !format->unsigned_num)
-    {
-        characters_printed += _putchar('+');
-        string_length(str) += 1;
-    }
-    else if (format->space_for_positive && !is_negative && !format->unsigned_num)
-    {
-        characters_printed += _putchar(' ');
-        string_length(str) += 1;
-    }
-
-    characters_printed += _puts(str);
-
-    while (string_length(str) < format->width)
-    {
-        _putchar(padding_char);
-        characters_printed++;
-    }
-
-    return characters_printed;
+	if (params->plus_flag && !neg2 && !params->unsign)
+		n += _putchar('+'), i++;
+	else if (params->space_flag && !neg2 && !params->unsign)
+		n += _putchar(' '), i++;
+	n += _puts(str);
+	while (i++ < params->width)
+		n += _putchar(pad_char);
+	return (n);
 }
-
